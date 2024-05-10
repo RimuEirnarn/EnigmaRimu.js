@@ -1,0 +1,19 @@
+{
+  "name": "EnigmaRimu.js",
+  "version": "0.0.1",
+  "description": "Shitty JavaScript framework for static website to look a bit dynamic",
+  "main": "main.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "script/build.sh",
+    "compile": "script/compile.sh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "esbuild": "^0.21.1",
+    "jquery": "^3.7.1",
+    "strftime": "^0.10.2"
+  }
+}
