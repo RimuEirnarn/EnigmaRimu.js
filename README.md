@@ -1,4 +1,4 @@
-# Enigma.rimujs
+# EnigmaRimu.js
 
 This is just another shitty JavaScript framework for static websites and makes it looks like dynamic.
 
