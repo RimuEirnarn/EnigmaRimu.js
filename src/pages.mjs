@@ -1,11 +1,19 @@
-import { config } from "./config.mjs";
-import {  } from "./transition.mjs"
+import { transition } from "./transition.mjs"
+import { render_template } from "./utils.mjs"
 
-const Page = (data) => {
-    const virtualDOM = config.target.app
+/**
+ * Page
+ * @param {String} path Page URL path
+ * @param {String} data HTML data of the page
+ */
+const Page = (path, data) => {
     return {
-        render() {
-            document.getElementById(virtualDOM).innerHTML = data
+        /**
+         * Renders page (after renders the template by the data)
+         * @param {Object.<string, string>} template_data 
+         */
+        render(template_data) {
+            transition(path, render_template(data, template_data))
         }
     }
 }
