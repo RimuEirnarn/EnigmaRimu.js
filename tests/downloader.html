@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+
+  <script>
+    let data;
+  </script>
+
+  <script type="module">
+    import { DownloadManager} from "../src/downloader.mjs";
+
+    const test = DownloadManager()
+
+    // setup 2 downloads
+    test.setQueue([
+      {'key': 'test1', 'req': "downloader.html", type: 'text'},
+      {'key': 'test2', 'req': "downloader.html", type: 'text'}
+    ])
+
+    test.execute()
+    data = {test}
+  </script>
+</head>
+<body>
+  <p>The tests is on console</p>
+</body>
+</html>

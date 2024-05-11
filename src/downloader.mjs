@@ -3,13 +3,12 @@
  * Wrapper around fetch
  * @param {string | Request} request fetch() request
  * @param {Object} option fetch options
- * @param {string} response type return
- * @returns {Promise.<String|Blob>}
+ * @returns {Promise.<Response>}
  */
-const ft = (request, option, type) => {
-    return Promise((resolve, reject) => {
+const ft = (request, option) => {
+    return new Promise((resolve, reject) => {
         fetch(request, option)
-            .then((resp) => type === 'text' ? resp.text : resp.blob)
+            .then((resp) => resp.ok ? resp : reject(err))
             .then((data) => resolve(data))
             .catch((err) => reject(err))
     })
@@ -24,10 +23,24 @@ const DownloadManager = (should_frozen) => {
     const queue = []
     const mapped = {}
 
+    /**
+     * @returns {Promise.<Blob|String|any>}
+     */
+    function ret(i, resp) {
+        switch (i.type) {
+            case "text":
+                return resp.text()
+            case "json":
+                return resp.json()
+            default:
+                return resp.blob()
+        }
+    }
+
     return {
         setQueue(nqueue) {
             if (!frozen) {
-                queue.concat(nqueue)
+                queue.push(...nqueue)
                 frozen = should_frozen ? true : false
                 return
             }
@@ -35,16 +48,20 @@ const DownloadManager = (should_frozen) => {
         },
 
         execute() {
-            for (i of queue) {
+            for (let i of queue) {
                 ft(i.req, i.opt).then((resp) => {
                     mapped[i.key] = {
                         status: 'ok',
-                        data: resp
                     }
+                    ret(i, resp).then(d => mapped[i.key].data = d)
                 })
-            }
         }
-    }
+    },
+
+        get data() { return mapped },
+
+        get queue() { return queue.concat([]) }
+}
 }
 
 const GDM = DownloadManager(true)
