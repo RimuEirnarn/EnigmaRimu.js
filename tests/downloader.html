@@ -16,13 +16,18 @@
 
     // setup 2 downloads
     test.setQueue([
-      {'key': 'test1', 'req': "downloader.html", type: 'text'},
-      {'key': 'test2', 'req': "downloader.html", type: 'text'}
+      {key: 'test1', req: "downloader.html", type: 'text'},
+      {key: 'test2', req: "downloader.html", type: 'text'},
+      {key: 'test3', req: "test-50mb", type: 'text'}
     ])
 
     test.execute()
-    d = {test}
-    test.data.test1.promise.then((r) => console.log('from promise hell', r))
+    d = {test};
+    (() => {
+      let t = test.data.test3.promise
+      console.log(t)
+      t.then((a) => console.log(a))
+    })()
   </script>
 </head>
 <body>

@@ -139,7 +139,7 @@ const DownloadManager = (should_frozen) => {
         get data() { return mapped },
 
         /** @type {Array.<QueueObject>}*/
-        get queue() { return queue.concat([]) }
+        get queues() { return queue.concat([]) }
     }
 }
 
