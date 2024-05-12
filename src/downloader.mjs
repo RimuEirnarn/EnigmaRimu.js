@@ -11,6 +11,7 @@
  * @type {object}
  * @property {string} status - Request Status
  * @property {?string} data - requested data
+ * @property {Promise.<string>} promise - requested data, but as promise
  * @property {?string} type - request data type
  */
 
@@ -45,7 +46,7 @@ const DownloadManager = (should_frozen) => {
     const mapped = {}
 
     /**
-     * @returns {Promise.<Blob|String|any>}
+     * @returns {<Promise.<Blob|String|any>}
      */
     function ret(i, resp) {
         switch (i.type) {
@@ -56,6 +57,41 @@ const DownloadManager = (should_frozen) => {
             default:
                 return resp.blob()
         }
+    }
+
+    function after_request(i) {
+        /**
+         * @param {Response} response 
+         */
+        return (response) => {
+            mapped[i.key]['status'] = 'ok'
+            ret(i, response).then(d => mapped[i.key].data = d)
+        }
+    }
+
+    /**
+     * @param {Number} time 
+     */
+    function _waitfor(time) {
+        return new Promise((r) => setTimeout(r, time))
+    }
+
+    /**
+     * Wrapper around promise
+     * @param {Function} resolve
+     * @param {Function} reject 
+     * @param {Boolean} callback_hell 
+     */
+    function promised_data(resolve, reject, callback_hell) {
+        if (![undefined, null].includes(this.data)) {
+            resolve(this.data)
+            return
+        }
+        if (callback_hell === undefined) {
+            _waitfor(1000).then(() => promised_data.bind(this)(resolve, reject, false))
+            return
+        }
+        reject("unavailable")
     }
 
     return {
@@ -77,18 +113,19 @@ const DownloadManager = (should_frozen) => {
          */
         execute() {
             for (let i of queue) {
+                mapped[i.key] = {
+                    data: null,
+                    status: null,
+                    get promise() {
+                        return new Promise(promised_data.bind(mapped[i.key]))
+                    }
+                }
                 ft(i.req, i.opt)
-                    .then((resp) => {
-                        mapped[i.key] = {
-                            status: 'ok',
-                        }
-                        ret(i, resp).then(d => mapped[i.key].data = d)
-                    })
-                    .catch((resp) => {
-                        mapped[i.key] = {
-                            status: 'error',
-                            data: null
-                        }
+                    .then(after_request(i))
+                    .catch((e) => {
+                        console.error(e)
+                        mapped[i.key]['status'] = 'error'
+                        mapped[i.key]['data'] = e
                     })
             }
             queue.length = 0

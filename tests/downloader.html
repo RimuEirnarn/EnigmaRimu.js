@@ -6,7 +6,7 @@
   <title>Document</title>
 
   <script>
-    let data;
+    let d;
   </script>
 
   <script type="module">
@@ -21,7 +21,8 @@
     ])
 
     test.execute()
-    data = {test}
+    d = {test}
+    test.data.test1.promise.then((r) => console.log('from promise hell', r))
   </script>
 </head>
 <body>

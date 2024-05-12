@@ -1,8 +1,14 @@
 import { config } from "./config.mjs"
 
+/**
+ * Process HTML data into DOM
+ * @param {JQuery} targetDOM 
+ * @param {String} content 
+ * @returns {String} Page title
+ */
 function _ProcessData(targetDOM, content) {
     targetDOM.html(content)
-    let virtualTitle = $(config.target.app_title)
+    let virtualTitle = $(`${config.target.app} > title`)
     let title = document.title
     if (virtualTitle) {
         document.title = virtualTitle.text() || title

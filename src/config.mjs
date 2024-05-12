@@ -3,7 +3,6 @@ const config = {
     target: {
         notification: null,
         app: null,
-        app_title: null
     },
     transition_uses_hash: false
 }
