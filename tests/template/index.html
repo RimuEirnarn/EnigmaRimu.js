@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+
+  <script>
+    let d;
+  </script>
+
+  <script type="module">
+    import { Template } from "../../src/template.mjs"
+
+    Template.with_url("template", 'template/template1.html').then((t) => t.render('#template', {data: "Rimu Aerisya"}))
+
+    
+  </script>
+</head>
+<body>
+  <div id="template"></div>
+</body>
+</html>

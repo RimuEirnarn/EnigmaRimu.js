@@ -1,5 +1,6 @@
-import { GDM } from "./downloader.mjs";
+import { DownloadManager } from "./downloader.mjs";
 
+const downloader = DownloadManager(false)
 
 /**
  * Known Templates
@@ -16,8 +17,8 @@ const KNOWN_TEMPLATES = {}
 function render_template(data, template_data) {
     let d = data
     for (let key in template_data) {
-        if (object.hasOwnProperty(key)) {
-            d = d.replaceAll(`$[${key}]`, template_data)
+        if (template_data.hasOwnProperty(key)) {
+            d = d.replaceAll(`$[${key}]`, template_data[key])
         }
     }
     return d
@@ -28,7 +29,7 @@ function render_template(data, template_data) {
  * @param {String} name - Template name, it can be used for nesting template rendering
  * @param {String} data - Template data, html template code
  */
-const Template = (name, data) => {
+function Template(name, data) {
     KNOWN_TEMPLATES[name] = data
     return {
         /**
@@ -45,9 +46,18 @@ const Template = (name, data) => {
         }
     }
 }
+console.log(Template)
 
-Template.prototype.with_url = (name, url) => {
-    
+Template.with_url = (name, url, timeout=2500) => {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            downloader.setQueue([{key: name, req: url, type: 'text'}])
+            downloader.execute()
+            downloader.data[name].promise
+                .then((v) => resolve(Template(name, v)))
+                .catch((e) => reject(e))
+        }, timeout)
+    })
 }
 
 export { Template, render_template }

@@ -11,6 +11,7 @@
 
   <script type="module">
     import { DownloadManager} from "../src/downloader.mjs";
+    import { Template } from "../src/template.mjs"
 
     const test = DownloadManager()
 
@@ -18,16 +19,20 @@
     test.setQueue([
       {key: 'test1', req: "downloader.html", type: 'text'},
       {key: 'test2', req: "downloader.html", type: 'text'},
-      {key: 'test3', req: "test-50mb", type: 'text'}
+      //{key: 'test3', req: "test-50mb", type: 'text'}
     ])
 
     test.execute()
     d = {test};
-    (() => {
+    /*(() => {
       let t = test.data.test3.promise
       console.log(t)
       t.then((a) => console.log(a))
-    })()
+    })()*/
+
+    d.a = Template.with_url('this', "downloader.html")
+    console.log(d.a)
+    d.a.then((r) => console.log(r))
   </script>
 </head>
 <body>
