@@ -10,7 +10,8 @@
   </script>
 
   <script type="module">
-    import { DownloadManager} from "../src/downloader.mjs";
+    import { config } from "../src/config.mjs"
+    import { DownloadManager, prepare } from "../src/downloader.mjs";
     import { Template } from "../src/template.mjs"
 
     const test = DownloadManager()
@@ -30,9 +31,17 @@
       t.then((a) => console.log(a))
     })()*/
 
-    d.a = Template.with_url('this', "downloader.html")
+    /*d.a = Template.with_url('this', "downloader.html")
     console.log(d.a)
-    d.a.then((r) => console.log(r))
+    d.a.then((r) => console.log(r))*/
+    const prep = (name, req) => prepare(name, req, {}, false)
+
+    test.setQueue([
+      prep('test3', 'downloader.html'),
+      prep('test4', 'downloader.html'),
+      prep('test5', 'downloader.html')
+    ])
+    test.execute()
   </script>
 </head>
 <body>

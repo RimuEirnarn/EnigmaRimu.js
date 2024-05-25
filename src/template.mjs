@@ -34,6 +34,7 @@ function Template(name, data) {
     return {
         /**
          * Render this template into a element
+         * @method render
          * @param {String} data - HTML Template code
          * @param {Object.<string, str>} template_data - Template mapping
          */
@@ -48,10 +49,21 @@ function Template(name, data) {
 }
 console.log(Template)
 
-Template.with_url = (name, url, timeout=2500) => {
+/**
+ * Create a template by URL
+ * @memberof Template
+ * @param {String} name - Template name
+ * @param {String|Request} url - fetch() request
+ * @param {Number} timeout - Timeout
+ * @param {Boolean} refresh - should function refresh the cache
+ * @returns {Promise.<Template>}
+ */
+const Template_with_url = (name, url, timeout = 2500, refresh = false) => {
+    if ((KNOWN_TEMPLATES[name] !== undefined) && (!refresh))
+        return new Promise((resolve) => resolve(KNOWN_TEMPLATES[name]))
     return new Promise((resolve) => {
         setTimeout(() => {
-            downloader.setQueue([{key: name, req: url, type: 'text'}])
+            downloader.setQueue([{ key: name, req: url, type: 'text' }])
             downloader.execute()
             downloader.data[name].promise
                 .then((v) => resolve(Template(name, v)))
@@ -59,5 +71,7 @@ Template.with_url = (name, url, timeout=2500) => {
         }, timeout)
     })
 }
+
+Template.with_url = Template_with_url
 
 export { Template, render_template }

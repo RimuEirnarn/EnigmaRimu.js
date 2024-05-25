@@ -30,6 +30,38 @@ function randint(max) {
     return Math.floor(Math.random() * max);
 }
 
+/** @param {Number} len */
+const _default_generate_id = (len) => {
+    let result = '';
+    const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let counter = 0;
+    while (counter < len) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+        counter += 1;
+    }
+    return result;
+}
+
+// dec2hex :: Integer -> String
+// i.e. 0-255 -> '00'-'ff'
+function dec2hex(dec) {
+    return dec.toString(16).padStart(2, "0")
+}
+
+/** @param {Number} len */
+const _crypto_generate_id = (len) => {
+    var arr = new Uint8Array((len || 40) / 2)
+    window.crypto.getRandomValues(arr)
+    return Array.from(arr, dec2hex).join('')
+}
+
+/**
+ * @function generate_id
+ * Generate random ID.
+ * @param {Number} len - Character length
+ * @returns <String>
+ */
+const generate_id = typeof window.crypto ? _crypto_generate_id : _default_generate_id
 
 async function _sleep(time) {
     await new Promise(resolve => setTimeout(resolve, time * 1000))
@@ -106,7 +138,7 @@ function trace_query() {
     const data = {}
     let key, val;
 
-    for (let i of q)  {
+    for (let i of q) {
         [key, val] = i.split('=')
         data[key] = val
     }
@@ -117,7 +149,7 @@ const id_ID = {
     identifier: 'id-ID',
     days: ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"],
     shortDays: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
-    months: ["Januari", "Februari", "Maret", "April", "Mei", 'Juni', "Juli", "Agustus", "September", "Oktober","November","Desember"],
+    months: ["Januari", "Februari", "Maret", "April", "Mei", 'Juni', "Juli", "Agustus", "September", "Oktober", "November", "Desember"],
     shortMonths: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
     AM: 'AM',
     PM: 'PM',
@@ -135,7 +167,25 @@ const id_ID = {
         x: '%D'
     }
 }
-if (navigator.language.startsWith('id'))
-    strftime.localize(id_ID)
+if (navigator.language.startsWith('id')) {
+    if (!typeof strftime === 'undefined')
+        strftime.localize(id_ID)
+}
 
-export { sanitize, getCookie, setCookie, sleep, randint, isSmallScreen, now, getModeScheme, trace_query }
+/**
+ * render template
+ * @param {String} string - Template string.
+ * @param {Object.<string, string>} data - Template mapping
+ * @returns {String} Rendered string
+ */
+function render_template(string, data) {
+    let ret = string
+    for (const key in data) {
+        if (data.hasOwnProperty(key)) {
+            ret = ret.replaceAll(`$[${key}]`, data[key]);
+        }
+    }
+    return ret
+}
+
+export { sanitize, getCookie, setCookie, sleep, randint, isSmallScreen, now, getModeScheme, trace_query, render_template, generate_id }

@@ -1,9 +1,26 @@
+import { generate_id } from "./utils.mjs"
+
+
+function hashed() {
+    return `id=${Date.now()}/${generate_id(16)}`
+}
+
 /**
  * @typedef QueueObject
  * @type {object}
  * @property {string} key - Queue Key/id
  * @property {string|Request} req - fetch() URL or Request
+ * @property {string} type - Request file type
  * @property {?RequestOption} opt - fetch() options
+ * @property {?Object.<string, string>} misc - Misc. data
+ */
+
+/**
+ * Download Callback
+ *
+ * @callback DownloadCallback
+ * @param {String | Blob | any} data - Request data
+ * @param {QueueObject} Current object data
  */
 
 /**
@@ -29,6 +46,27 @@ const ft = (request, option) => {
             .then((data) => resolve(data))
             .catch((err) => reject(err))
     })
+}
+
+/**
+ * Prepare a request
+ * @param {String} name - Request name
+ * @param {String} req_string - Request URL
+ * @param {Object.<string, string>} headers - Request Headers
+ * @param {Boolean} should_cache - Should request cached?
+ * @returns {QueueObject}
+ */
+function prepare(name, req_string, headers, should_cache = true, misc = null) {
+    var reqstr = req_string + (should_cache ? '' : `${req_string.includes('?') ? `&${hashed()}` : `?${hashed()}`}`)
+
+    console.log(misc)
+    return {
+        key: name,
+        req: reqstr,
+        opt: headers,
+        type: 'text',
+        misc: misc
+    }
 }
 
 /**
@@ -59,13 +97,16 @@ const DownloadManager = (should_frozen) => {
         }
     }
 
-    function after_request(i) {
+    function after_request(i, callback) {
+        console.log(i)
         /**
          * @param {Response} response 
          */
         return (response) => {
             mapped[i.key]['status'] = 'ok'
-            ret(i, response).then(d => mapped[i.key].data = d)
+            ret(i, response)
+                .then(d => mapped[i.key].data = callback ? callback(d, i) : d)
+                .catch(e => console.error(e))
         }
     }
 
@@ -97,6 +138,7 @@ const DownloadManager = (should_frozen) => {
     return {
         /**
         * Set the download queue.
+        * @method
         * @param {Array.<QueueObject>} nqueue 
         */
         setQueue(nqueue) {
@@ -110,8 +152,10 @@ const DownloadManager = (should_frozen) => {
 
         /**
          * Execute download manager
+         * @method
+         * @param {DownloadCallback} success_callback 
          */
-        execute() {
+        execute(success_callback) {
             for (let i of queue) {
                 mapped[i.key] = {
                     data: null,
@@ -121,7 +165,7 @@ const DownloadManager = (should_frozen) => {
                     }
                 }
                 ft(i.req, i.opt)
-                    .then(after_request(i))
+                    .then(after_request(i, success_callback))
                     .catch((e) => {
                         console.error(e)
                         mapped[i.key]['status'] = 'error'
@@ -145,4 +189,4 @@ const DownloadManager = (should_frozen) => {
 
 const GDM = DownloadManager(true)
 
-export { DownloadManager, GDM }
+export { DownloadManager, GDM, prepare }

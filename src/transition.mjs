@@ -22,8 +22,8 @@ function _ProcessData(targetDOM, content) {
  * @param {Object} data 
  * @param {String} urlPath 
  */
-function transition(data, urlPath){
-    let target = $(config.target.app)
+function transition(urlPath, data){
+    let target = $(config.target.app || '#app')
     let content = target.get(0)
     if ((content.tagName !== "DIV") && (content.tagName !== "MAIN")) throw new Error("Content wrapper is not a div or main")
     
