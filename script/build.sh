@@ -16,7 +16,7 @@ build(){
         if [ "$fname" = "index.mjs" ] && [ ! "$name" = "split" ]; then
             fname="$MAIN"
         fi
-        ARGS="--bundle --outfile=$BUILD/$fname"
+        ARGS="--analyze=verbose --bundle --outfile=$BUILD/$fname"
     fi
     npx esbuild --platform=neutral $ARGS --out-extension:.js=.mjs "$@"
 }
@@ -30,7 +30,7 @@ compile(){
             fname="$MAIN"
         fi
 
-        ARGS="--bundle --outfile=$BUILD/min.$fname"
+        ARGS="--analyze=verbose --bundle --outfile=$BUILD/min.$fname"
     fi
 
     npx esbuild --minify --platform=neutral $ARGS --out-extension:.js=.mjs "$@"
