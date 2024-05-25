@@ -1,5 +1,5 @@
 import { Notification } from "./notification.mjs";
-import { Page } from "./pages.mjs";
+import { setup, goto } from "./pages.mjs";
 import { config } from "./config.mjs";
 import { Template } from "./template.mjs"
 import { DownloadManager } from "./downloader.mjs"
@@ -12,6 +12,8 @@ function main() {
     DownloadManager()
     randint()
     config.transition_uses_hash.toString()
+    setup()
+    goto()
 }
 
 export { main }
