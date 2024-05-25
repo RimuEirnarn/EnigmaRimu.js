@@ -167,9 +167,14 @@ const id_ID = {
         x: '%D'
     }
 }
+
 if (navigator.language.startsWith('id')) {
-    if (!typeof strftime === 'undefined')
-        strftime.localize(id_ID)
+    if (typeof strftime === 'undefined') {
+        window.strftime = {
+            localize(_) { }
+        }
+    }
+    strftime.localize(id_ID)
 }
 
 /**
