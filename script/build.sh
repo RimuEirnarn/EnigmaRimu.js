@@ -2,32 +2,35 @@
 
 BUILD="build"
 SPLIT="$BUILD/EnigmaRimu"
+MINSPLIT="$BUILD/min.EnigmaRimu"
 MAIN="EnigmaRimu.mjs"
 method="$1"
 name="$2"
 
 build(){
-    fname="$(basename $1)"
-    if [ "$fname" = "index.mjs" ] && [ ! "$name" = "split" ]; then
-        fname="$MAIN"
-    fi
+    
     if [ "$name" = "split" ]; then
         ARGS="--outdir=$SPLIT"
     else
+        fname="$(basename $1)"
+        if [ "$fname" = "index.mjs" ] && [ ! "$name" = "split" ]; then
+            fname="$MAIN"
+        fi
         ARGS="--bundle --outfile=$BUILD/$fname"
     fi
     npx esbuild --platform=neutral $ARGS --out-extension:.js=.mjs "$@"
 }
 
 compile(){
-    fname="$(basename $1)"
-    if [ "$fname" = "index.mjs" ] && [ ! "$name" = "split" ]; then
-        fname="$MAIN"
-    fi
-    if [ "$name" = "split" ]; then
-        ARGS="--outdir=$SPLIT"
+        if [ "$name" = "split" ]; then
+        ARGS="--outdir=$MINSPLIT"
     else
-        ARGS="--bundle --outfile=$BUILD/min-$fname"
+        fname="$(basename $1)"
+        if [ "$fname" = "index.mjs" ] && [ ! "$name" = "split" ]; then
+            fname="$MAIN"
+        fi
+
+        ARGS="--bundle --outfile=$BUILD/min.$fname"
     fi
 
     npx esbuild --minify --platform=neutral $ARGS --out-extension:.js=.mjs "$@"
@@ -49,6 +52,7 @@ if [ ! "$name" = "split" ]; then
     do_which src/index.mjs
 else
     [ ! -d "$SPLIT" ] && mkdir "$SPLIT"
+    [ ! -d "$MINSPLIT" ] && mkdir "$MINSPLIT"
     #for i in src/*; do
     #    filename="$(basename $i)"
     #    if [ "$filename" = "index.mjs" ]; then
