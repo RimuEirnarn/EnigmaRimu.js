@@ -1,8 +1,11 @@
 import { config } from "./config.mjs"
 
+if (typeof window.$ === "undefined")
+    throw new Error("transition.js requires jQuery to function properly as it needs to manipulates unrendered html code.")
+
 /**
  * Process HTML data into DOM
- * @param {JQuery} targetDOM 
+ * @param {jQuery} targetDOM 
  * @param {String} content 
  * @returns {String} Page title
  */
