@@ -1,5 +1,5 @@
 import { transition } from "./transition.mjs"
-import { render_template, generate_id } from "./utils.mjs"
+import { render_template } from "./utils.mjs"
 import { DownloadManager, prepare } from "./downloader.mjs"
 
 var initialized = false

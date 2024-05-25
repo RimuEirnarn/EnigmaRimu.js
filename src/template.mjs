@@ -47,7 +47,6 @@ function Template(name, data) {
         }
     }
 }
-console.log(Template)
 
 /**
  * Create a template by URL

@@ -59,7 +59,6 @@ const ft = (request, option) => {
 function prepare(name, req_string, headers, should_cache = true, misc = null) {
     var reqstr = req_string + (should_cache ? '' : `${req_string.includes('?') ? `&${hashed()}` : `?${hashed()}`}`)
 
-    console.log(misc)
     return {
         key: name,
         req: reqstr,
@@ -98,7 +97,6 @@ const DownloadManager = (should_frozen) => {
     }
 
     function after_request(i, callback) {
-        console.log(i)
         /**
          * @param {Response} response 
          */
