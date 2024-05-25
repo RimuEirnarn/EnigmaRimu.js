@@ -5,15 +5,16 @@
   "main": "main.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "script/build.sh",
-    "compile": "script/compile.sh"
+    "build": "script/build.sh build",
+    "compile": "script/build.sh compile"
   },
   "keywords": [],
   "author": "",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "esbuild": "^0.21.1",
-    "jquery": "^3.7.1",
-    "strftime": "^0.10.2"
+    "esbuild": "^0.21.1"
+  },
+  "devDependencies": {
+    "jquery": "^3.7.1"
   }
 }
