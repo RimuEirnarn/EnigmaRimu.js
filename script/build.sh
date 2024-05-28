@@ -6,34 +6,35 @@ MINSPLIT="$BUILD/min.EnigmaRimu"
 MAIN="EnigmaRimu.mjs"
 method="$1"
 name="$2"
+ARGS="--platform=neutral --out-extension:.js=.mjs --outbase=src/ --sourcemap"
 
 build(){
     
     if [ "$name" = "split" ]; then
-        ARGS="--outdir=$SPLIT"
+        BUILD_ARGS="--outdir=$SPLIT"
     else
         fname="$(basename $1)"
         if [ "$fname" = "index.mjs" ] && [ ! "$name" = "split" ]; then
             fname="$MAIN"
         fi
-        ARGS="--analyze=verbose --bundle --outfile=$BUILD/$fname"
+        BUILD_ARGS="--analyze=verbose --bundle --outfile=$BUILD/$fname"
     fi
-    npx esbuild --platform=neutral $ARGS --out-extension:.js=.mjs "$@"
+    npx esbuild $ARGS $BUILD_ARGS "$@"
 }
 
 compile(){
         if [ "$name" = "split" ]; then
-        ARGS="--outdir=$MINSPLIT"
+        BUILD_ARGS="--outdir=$MINSPLIT"
     else
         fname="$(basename $1)"
         if [ "$fname" = "index.mjs" ] && [ ! "$name" = "split" ]; then
             fname="$MAIN"
         fi
 
-        ARGS="--analyze=verbose --bundle --outfile=$BUILD/min.$fname"
+        BUILD_ARGS="--analyze=verbose --bundle --outfile=$BUILD/min.$fname"
     fi
 
-    npx esbuild --minify --platform=neutral $ARGS --out-extension:.js=.mjs "$@"
+    npx esbuild --minify $ARGS $BUILD_ARGS "$@"
 }
 
 do_which(){
