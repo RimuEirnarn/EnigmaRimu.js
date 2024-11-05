@@ -1,34 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
 
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/tests/jquery.min.js"></script>
 
-<script>
-    let d;
-  </script>
+    <script>
+      let d;
+    </script>
 
-  <script type="module">
-    import { config } from "../../src/config.mjs"
-    import { setup, goto, page_dm } from "../../src/pages.mjs"
+    <script type="module">
+      import { config } from "../../src/config.mjs";
+      import { setup, goto, page_dm, post_setup } from "../../src/pages.mjs";
+      import { sleep } from "../../src/utils.mjs";
 
-    config.target.app = '#app'
-    setup({
-      "/rimu": "page-template/page2.html"
-    })
+      config.target.app = "#app";
+      config.transition_uses_hash = false;
+      setup({
+        "/user/rimu": {
+          url: "page-template/page2.html",
+          init() {
+            console.log("init");
+            return { name: "Rimu Aerisya " };
+          },
+          post_init() {
+            console.log("post_init");
+          },
+        },
+        "/user/rimu/bio": {
+          url: "page-template/no-hash-page3.html",
+          init() {
+            return { name: "Rimu Aerisya " };
+          },
+        },
+        "/tests/page": {
+          data: $(config.target.app).html(),
+          init() {
+            return {};
+          },
+        },
+      });
 
-    d = page_dm
+      document.addEventListener("page.transitioned", (e) => {
+        console.log(e.detail);
+      });
+      d = page_dm;
 
-    goto('/rimu', {name: 'Rimu Aerisya'})
-  
-  </script>
-
-</head>
-<body>
-  <div id='app'></div>
-</body>
+      post_setup(config.target.app);
+    </script>
+  </head>
+  <body>
+    <div id="app">
+      <a href="/user/rimu">Rimu's profile</a>
+      <a href="/user/rimu/bio">Rimu's bio</a>
+    </div>
+  </body>
 </html>
-

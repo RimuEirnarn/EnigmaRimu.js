@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <a href="index.html">index</a>
+
+    <script>
+      let links = document.querySelectorAll("a[href]");
+      for (let i of links) {
+        i.addEventListener("click", (e) => {
+          e.preventDefault();
+          let href = i.getAttribute("href");
+          console.log(href);
+        });
+      }
+    </script>
+  </body>
+</html>
