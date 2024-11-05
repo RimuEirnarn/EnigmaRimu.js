@@ -1,5 +1,7 @@
 import { DownloadManager } from "./downloader.mjs";
 
+/** @type {JQuery} */
+const $ = window.$
 const downloader = DownloadManager(false)
 
 /**
@@ -35,8 +37,8 @@ function Template(name, data) {
         /**
          * Render this template into a element
          * @method render
-         * @param {String} data - HTML Template code
-         * @param {Object.<string, str>} template_data - Template mapping
+         * @param {String} to Target element
+         * @param {Object.<string, str>} template_data Template mapping
          */
         render(to, template_data) {
             const elem = document.querySelector(to)
@@ -44,6 +46,34 @@ function Template(name, data) {
                 throw new Error(`'${to}' cannot be found.`)
 
             elem.innerHTML = render_template(data, template_data)
+        },
+
+        /**
+         * Render and append to an element
+         * @method append
+         * @param {String} to Target element
+         * @param {Object.<string, string} template_data template mapping
+         */
+        append(to, template_data) {
+            /** @type {JQuery?} */
+            const element = $(to)
+            if (!element)
+                throw new Error(`${to} cannot be found`)
+            element.append(template_data)
+        },
+        
+        /**
+         * Render and prepend to an element
+         * @method prepend
+         * @param {String} to Target element
+         * @param {Object.<string, string} template_data template mapping
+         */
+        prepend(to, template_data) {
+            /** @type {JQuery?} */
+            const element = $(to)
+            if (!element)
+                throw new Error(`${to} cannot be found`)
+            element.prepend(template_data)
         }
     }
 }

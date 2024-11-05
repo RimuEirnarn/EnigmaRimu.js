@@ -5,6 +5,9 @@ if (typeof window.$ === "undefined")
     "transition.js requires jQuery to function properly as it needs to manipulates unrendered html code."
   );
 
+/** @type {JQuery} */
+const $ = window.$
+
 /**
  * Process HTML data into DOM
  * @param {jQuery} targetDOM
