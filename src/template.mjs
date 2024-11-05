@@ -11,6 +11,12 @@ const downloader = DownloadManager(false)
 const KNOWN_TEMPLATES = {}
 
 /**
+ * Template Data
+ * @typedef {Object.<string, string>} TemplateData
+ * @type {object}
+ */
+
+/**
  * render template
  * @param {String} data - HTML Template code
  * @param {Object.<string, str>} template_data - Template mapping
@@ -38,7 +44,7 @@ function Template(name, data) {
          * Render this template into a element
          * @method render
          * @param {String} to Target element
-         * @param {Object.<string, str>} template_data Template mapping
+         * @param {TemplateData} template_data Template mapping
          */
         render(to, template_data) {
             const elem = document.querySelector(to)
@@ -52,7 +58,7 @@ function Template(name, data) {
          * Render and append to an element
          * @method append
          * @param {String} to Target element
-         * @param {Object.<string, string} template_data template mapping
+         * @param {TemplateData} template_data template mapping
          */
         append(to, template_data) {
             /** @type {JQuery?} */
@@ -66,7 +72,7 @@ function Template(name, data) {
          * Render and prepend to an element
          * @method prepend
          * @param {String} to Target element
-         * @param {Object.<string, string} template_data template mapping
+         * @param {TemplateData} template_data template mapping
          */
         prepend(to, template_data) {
             /** @type {JQuery?} */
@@ -74,7 +80,38 @@ function Template(name, data) {
             if (!element)
                 throw new Error(`${to} cannot be found`)
             element.prepend(render_template(data, template_data))
-        }
+        },
+
+        /**
+         * Render all template data arrays and append them to target
+         * @method batch_append
+         * @param {String} to Target element
+         * @param {TemplateData[]} templateDataArray 
+         */
+        batch_append(to, templateDataArray) {
+            /** @type {JQuery?} */
+            const element = $(to);
+            if (!element) throw new Error(`${to} cannot be found`);
+
+            let combinedHtml = templateDataArray.map(data => render_template(this.data, data)).join("");
+            element.append(combinedHtml);
+        },
+
+        /**
+         * Render all template data arrays and append them to target
+         * @method batch_prepend
+         * @param {String} to Target element
+         * @param {TemplateData[]} templateDataArray 
+         */
+        batch_prepend(to, templateDataArray) {
+            /** @type {JQuery?} */
+            const element = $(to);
+            if (!element) throw new Error(`${to} cannot be found`);
+
+            let combinedHtml = templateDataArray.map(data => render_template(this.data, data)).join("");
+            element.prepend(combinedHtml);
+        },
+
     }
 }
 
