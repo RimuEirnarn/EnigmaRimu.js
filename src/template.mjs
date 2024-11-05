@@ -59,7 +59,7 @@ function Template(name, data) {
             const element = $(to)
             if (!element)
                 throw new Error(`${to} cannot be found`)
-            element.append(template_data)
+            element.append(render_template(data, template_data))
         },
         
         /**
@@ -73,7 +73,7 @@ function Template(name, data) {
             const element = $(to)
             if (!element)
                 throw new Error(`${to} cannot be found`)
-            element.prepend(template_data)
+            element.prepend(render_template(data, template_data))
         }
     }
 }
