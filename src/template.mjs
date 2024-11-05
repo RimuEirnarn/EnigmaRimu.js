@@ -86,14 +86,14 @@ function Template(name, data) {
          * Render all template data arrays and append them to target
          * @method batch_append
          * @param {String} to Target element
-         * @param {TemplateData[]} templateDataArray 
+         * @param {TemplateData[]} template_data_array 
          */
-        batch_append(to, templateDataArray) {
+        batch_append(to, template_data_array) {
             /** @type {JQuery?} */
             const element = $(to);
             if (!element) throw new Error(`${to} cannot be found`);
 
-            let combinedHtml = templateDataArray.map(data => render_template(this.data, data)).join("");
+            let combinedHtml = template_data_array.map(template_data => render_template(data, template_data)).join("");
             element.append(combinedHtml);
         },
 
@@ -101,14 +101,14 @@ function Template(name, data) {
          * Render all template data arrays and append them to target
          * @method batch_prepend
          * @param {String} to Target element
-         * @param {TemplateData[]} templateDataArray 
+         * @param {TemplateData[]} template_data_array 
          */
-        batch_prepend(to, templateDataArray) {
+        batch_prepend(to, template_data_array) {
             /** @type {JQuery?} */
             const element = $(to);
             if (!element) throw new Error(`${to} cannot be found`);
 
-            let combinedHtml = templateDataArray.map(data => render_template(this.data, data)).join("");
+            let combinedHtml = template_data_array.map(template_data => render_template(data, template_data)).join("");
             element.prepend(combinedHtml);
         },
 
