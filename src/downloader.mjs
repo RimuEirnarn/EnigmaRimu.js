@@ -119,15 +119,16 @@ const DownloadManager = (should_frozen) => {
      * Wrapper around promise
      * @param {Function} resolve
      * @param {Function} reject 
-     * @param {Boolean} callback_hell 
+     * @param {Number?} [callback_hell=10]
+     * @param {number} [timeout=50]  
      */
-    function promised_data(resolve, reject, callback_hell) {
+    function promised_data(resolve, reject, callback_hell = 10, timeout=50) {
         if (![undefined, null].includes(this.data)) {
             resolve(this.data)
             return
         }
-        if (callback_hell === undefined) {
-            _waitfor(1000).then(() => promised_data.bind(this)(resolve, reject, false))
+        if (callback_hell > 1 || [undefined, null].includes(callback_hell)) {
+            _waitfor(timeout).then(() => promised_data.bind(this)(resolve, reject, [undefined, null].includes(callback_hell) ? 9 : callback_hell - 1))
             return
         }
         reject("unavailable")
