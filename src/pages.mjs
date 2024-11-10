@@ -12,21 +12,15 @@ const page_dm = DownloadManager(true);
 const page_data = {};
 
 /**
- * Initialize current page
- * @callback PageInit
- * @returns {Object.<string, string>}
- */
-
-/**
  * @typedef PageConfig
  * @type {Object}
  * @property {String} [url] - Page URL
  * @property {String} [data] - HTML data of the page if URL is not provided.
- * @property {PageInit} [init] - This function will be called when the page is initialized and is expected to return an object as template data.
+ * @property {function(): Object.<string, string> | Promise<Object.<string, string>>} [init] - This function will be called when the page is initialized and is expected to return an object as template data.
  * @property {Function} [post_init] - This function will be called after the page is initialized..
  */
 
-/** @type {Object.<string, {url: string, init: PageInit, post_init: Function}>} */
+/** @type {Object.<string, PageConfig>} */
 const PAGE_FUNCTIONS = {};
 
 /**
@@ -46,7 +40,6 @@ const Page = (path, data) => {
     },
   };
 };
-
 /**
  * Setup Pages
  * @param {Object.<string, PageConfig} page_route - All page routes
@@ -105,7 +98,7 @@ function post_setup(default_target) {
  * @param {String} path - URL path
  * @param {Function} [oncomplete] - Oncomplete callback function
  */
-function goto(path, oncomplete = null) {
+async function goto(path, oncomplete = null) {
   /** @param {PageConfig} func  */
   function post_processing(func) {
     _process_inside_links(config.target.app);
@@ -119,22 +112,28 @@ function goto(path, oncomplete = null) {
 
   const name = path.replaceAll("/", "_");
   if (!page_data[path]) {
-    /** @type {Promise.<Page>} */
-    const elem = page_dm.data[name].promise;
-    elem
-      .then((p) => {
-        let func = PAGE_FUNCTIONS[path];
-        let template_data = func.init ? func.init() : {};
-        p.render(template_data || {});
+    /** @type {Page} */
+    const elem = await page_dm.data[name].promise;
+    elem;
+    let func = PAGE_FUNCTIONS[path];
+    /** @type {Object.<string, string>} */
+    let template_data = func.init
+      ? func.init.constructor.name == "AsyncFunction"
+        ? await func.init()
+        : func.init()
+      : {};
+    elem.render(template_data || {});
 
-        post_processing(func);
-      })
-      .catch((e) => console.error(e));
+    post_processing(func);
     return;
   }
   const elem = page_data[path];
   let func = PAGE_FUNCTIONS[path];
-  let template_data = func.init ? func.init() : {};
+  let template_data = func.init
+    ? func.init.constructor.name == "AsyncFunction"
+      ? await func.init()
+      : func.init()
+    : {};
   Page(path, elem.data).render(template_data || {});
   post_processing(func);
 }
