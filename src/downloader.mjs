@@ -1,5 +1,5 @@
+// @ts-check
 import { generate_id } from "./utils.mjs"
-
 
 function hashed() {
     return `id=${Date.now()}/${generate_id(16)}`
@@ -24,11 +24,12 @@ function hashed() {
  */
 
 /**
+ * @template D
  * @typedef DownloadedData
  * @type {object}
- * @property {string} status - Request Status
+ * @property {?string} status - Request Status
  * @property {?string} data - requested data
- * @property {Promise.<string>} promise - requested data, but as promise
+ * @property {Promise.<D>} promise - requested data, but as promise
  * @property {?string} type - request data type
  */
 
@@ -41,9 +42,10 @@ function hashed() {
  */
 const ft = (request, option) => {
     return new Promise((resolve, reject) => {
+        // @ts-ignore
         fetch(request, option)
-            .then((resp) => resp.ok ? resp : reject(err))
-            .then((data) => resolve(data))
+            .then((resp) => resp.ok ? resp : reject("Fetch error"))
+            .then((data) => data ? resolve(data) : reject("Undefined"))
             .catch((err) => reject(err))
     })
 }
@@ -54,9 +56,10 @@ const ft = (request, option) => {
  * @param {String} req_string - Request URL
  * @param {Object.<string, string>} headers - Request Headers
  * @param {Boolean} should_cache - Should request cached?
+ * @param {Object.<string, any>} misc Misc data
  * @returns {QueueObject}
  */
-function prepare(name, req_string, headers, should_cache = true, misc = null) {
+function prepare(name, req_string, headers, should_cache = true, misc = {}) {
     var reqstr = req_string + (should_cache ? '' : `${req_string.includes('?') ? `&${hashed()}` : `?${hashed()}`}`)
 
     return {
@@ -71,39 +74,63 @@ function prepare(name, req_string, headers, should_cache = true, misc = null) {
 /**
  * DownloadManager
  * @param {Boolean} should_frozen Should queue be frozen? 
+ * @template T
  */
-const DownloadManager = (should_frozen) => {
-    var frozen = false
+class DownloadManager {
+    #frozen
     /** @type {Array.<QueueObject>} */
-    const queue = []
+    #queue
     /**
      * Data after-queue. It may be ongoing or finished
-     * @type {Object.<string, DownloadedData>}
-    */
-    const mapped = {}
+     * @type {Object.<string, DownloadedData<T>>}
+     */
+    #mapped
+    /** @type {boolean} */
+    #should_frozen
 
     /**
-     * @returns {<Promise.<Blob|String|any>}
+     * @param {boolean} [should_frozen]
      */
-    function ret(i, resp) {
-        switch (i.type) {
+    constructor(should_frozen = false) {
+        this.#frozen = false
+        this.#should_frozen = should_frozen
+        this.#queue = []
+        this.#mapped = {}
+    }
+
+    /**
+     * @param {QueueObject} obj Object data
+     * @param {Response} resp Response
+     * @returns {Promise.<Blob|String|any>}
+     */
+    ret(obj, resp) {
+        switch (obj.type) {
             case "text":
+                // @ts-ignore
                 return resp.text()
             case "json":
+                // @ts-ignore
                 return resp.json()
             default:
+                // @ts-ignore
                 return resp.blob()
         }
     }
 
-    function after_request(i, callback) {
+    /**
+     * 
+     * @param {QueueObject} obj 
+     * @param {Function} callback 
+     * @returns 
+     */
+    after_request(obj, callback) {
         /**
          * @param {Response} response 
          */
         return (response) => {
-            mapped[i.key]['status'] = 'ok'
-            ret(i, response)
-                .then(d => mapped[i.key].data = callback ? callback(d, i) : d)
+            this.#mapped[obj.key]['status'] = 'ok'
+            this.ret(obj, response)
+                .then(d => this.#mapped[obj.key].data = callback ? callback(d, obj) : d)
                 .catch(e => console.error(e))
         }
     }
@@ -111,7 +138,7 @@ const DownloadManager = (should_frozen) => {
     /**
      * @param {Number} time 
      */
-    function _waitfor(time) {
+    _waitfor(time) {
         return new Promise((r) => setTimeout(r, time))
     }
 
@@ -119,73 +146,74 @@ const DownloadManager = (should_frozen) => {
      * Wrapper around promise
      * @param {Function} resolve
      * @param {Function} reject 
-     * @param {Number?} [callback_hell=10]
+     * @param {Number} [callback_hell=10]
      * @param {number} [timeout=50]  
      */
-    function promised_data(resolve, reject, callback_hell = 10, timeout=50) {
+    promised_data(resolve, reject, callback_hell = 10, timeout = 50) {
+        // @ts-ignore
         if (![undefined, null].includes(this.data)) {
             resolve(this.data)
             return
         }
-        if (callback_hell > 1 || [undefined, null].includes(callback_hell)) {
-            _waitfor(timeout).then(() => promised_data.bind(this)(resolve, reject, [undefined, null].includes(callback_hell) ? 9 : callback_hell - 1))
+        if (callback_hell > 1) {
+            this._waitfor(timeout).then(() => this.promised_data.bind(this)(resolve, reject, callback_hell - 1))
             return
         }
         reject("unavailable")
     }
 
-    return {
-        /**
-        * Set the download queue.
-        * @method
-        * @param {Array.<QueueObject>} nqueue 
-        */
-        setQueue(nqueue) {
-            if (!frozen) {
-                queue.push(...nqueue)
-                frozen = should_frozen ? true : false
-                return
-            }
-            throw new Error("Cannot re-bind queue. Read-only operation.")
-        },
-
-        /**
-         * Execute download manager
-         * @method
-         * @param {DownloadCallback} success_callback 
-         */
-        execute(success_callback) {
-            for (let i of queue) {
-                mapped[i.key] = {
-                    data: null,
-                    status: null,
-                    get promise() {
-                        return new Promise(promised_data.bind(mapped[i.key]))
-                    }
-                }
-                ft(i.req, i.opt)
-                    .then(after_request(i, success_callback))
-                    .catch((e) => {
-                        console.error(e)
-                        mapped[i.key]['status'] = 'error'
-                        mapped[i.key]['data'] = e
-                    })
-            }
-            queue.length = 0
-        },
-
-
-        /**
-        * Data after-queue. It may be ongoing or finished
-        * @type {Object.<string, DownloadedData>}
-        */
-        get data() { return mapped },
-
-        /** @type {Array.<QueueObject>}*/
-        get queues() { return queue.concat([]) }
+    /**
+    * Set the download queue.
+    * @param {Array.<QueueObject>} nqueue 
+    */
+    setQueue(nqueue) {
+        if (!this.#frozen) {
+            this.#queue.push(...nqueue)
+            this.#frozen = this.#should_frozen ? true : false
+            return
+        }
+        throw new Error("Cannot re-bind queue. Read-only operation.")
     }
+
+    /**
+     * Execute download manager
+     * @param {DownloadCallback} success_callback 
+     */
+    execute(success_callback) {
+        for (let i of this.#queue) {
+            // @ts-ignore
+            const _pd = this.promised_data;
+            const _md = this.#mapped;
+            // @ts-ignore
+            this.#mapped[i.key] = {
+                data: null,
+                status: null,
+                get promise() {
+                    return new Promise(_pd.bind(_md[i.key]))
+                }
+            }
+            ft(i.req, i.opt)
+                .then(this.after_request(i, success_callback))
+                .catch((e) => {
+                    console.error(e)
+                    this.#mapped[i.key]['status'] = 'error'
+                    this.#mapped[i.key]['data'] = e
+                })
+        }
+        this.#queue.length = 0
+    }
+
+
+    /**
+    * Data after-queue. It may be ongoing or finished
+    * @type {Object.<string, DownloadedData<T>>}
+    */
+    get data() { return this.#mapped }
+
+    /** @type {Array.<QueueObject>}*/
+    get queues() { return this.#queue.concat([]) }
 }
 
-const GDM = DownloadManager(true)
+const GDM = new DownloadManager(true)
 
 export { DownloadManager, GDM, prepare }

@@ -1,10 +1,14 @@
+// @ts-check
 import { config } from "./config.mjs";
 import { transition } from "./transition.mjs";
 import { render_template } from "./utils.mjs";
 import { DownloadManager, prepare } from "./downloader.mjs";
+import { Template } from "./template.mjs";
+
 
 var initialized = false;
-const page_dm = DownloadManager(true);
+/** @type {DownloadManager<Page>} */
+const page_dm = new DownloadManager(true);
 /**
  * Page data without URLs
  * @type {Object.<string, PageConfig>}
@@ -14,10 +18,10 @@ const page_data = {};
 /**
  * @typedef PageConfig
  * @type {Object}
- * @property {String} [url] - Page URL
- * @property {String} [data] - HTML data of the page if URL is not provided.
- * @property {function(): Object.<string, string> | Promise<Object.<string, string>>} [init] - This function will be called when the page is initialized and is expected to return an object as template data.
- * @property {Function} [post_init] - This function will be called after the page is initialized..
+ * @property {String?} [url] - Page URL
+ * @property {String?} [data] - HTML data of the page if URL is not provided.
+ * @property {function(): Object.<string, string> | Promise<Object.<string, string>>?} [init] - This function will be called when the page is initialized and is expected to return an object as template data.
+ * @property {Function?} [post_init] - This function will be called after the page is initialized..
  */
 
 /** @type {Object.<string, PageConfig>} */
@@ -28,21 +32,35 @@ const PAGE_FUNCTIONS = {};
  * @param {String} path Page URL path
  * @param {String} data HTML data of the page
  */
-const Page = (path, data) => {
-  return {
-    /**
-     * Renders page (after renders the template by the data)
-     * @param {Object.<string, string>} template_data
-     * @returns {void}
-     */
-    render(template_data) {
-      transition(path, render_template(data, template_data));
-    },
-  };
+class Page {
+  /** @type {string} */
+  #path
+  /** @type {string} */
+  #data
+
+  /**
+   * Page
+   * @param {String} path Page URL path
+   * @param {String} data HTML data of the page
+   */
+  constructor(path, data) {
+    this.#path = path
+    this.#data = data
+  }
+
+  /**
+   * Renders page (after renders the template by the data)
+   * @param {Object.<string, string>} template_data
+   * @returns {void}
+   */
+  render(template_data) {
+    transition(this.#path, render_template(this.#data, template_data));
+  }
 };
+
 /**
  * Setup Pages
- * @param {Object.<string, PageConfig} page_route - All page routes
+ * @param {Object.<string, PageConfig>} page_route - All page routes
  */
 function setup(page_route) {
   initialized = true;
@@ -68,7 +86,8 @@ function setup(page_route) {
   page_dm.setQueue(queues);
   page_dm.execute((resp, obj) => {
     if (!["null", "undefined"].includes(typeof obj.misc))
-      return Page(obj.misc.path, resp);
+      // @ts-ignore
+      return new Page(obj.misc.path, resp);
     throw new ReferenceError(
       "Expecting additional data, but obj.misc is undefined"
     );
@@ -79,7 +98,7 @@ function _process_inside_links(target) {
   let links = document.querySelector(target).querySelectorAll("a[href]");
 
   for (let i of links) {
-    if (!i in PAGE_FUNCTIONS) continue;
+    if (!(i in PAGE_FUNCTIONS)) continue;
     i.addEventListener("click", (e) => {
       e.preventDefault();
       let href = i.getAttribute("href");
@@ -96,7 +115,7 @@ function post_setup(default_target) {
 /**
  * goto() URL
  * @param {String} path - URL path
- * @param {Function} [oncomplete] - Oncomplete callback function
+ * @param {Function?} [oncomplete] - Oncomplete callback function
  */
 async function goto(path, oncomplete = null) {
   /** @param {PageConfig} func  */
@@ -112,11 +131,13 @@ async function goto(path, oncomplete = null) {
 
   const name = path.replaceAll("/", "_");
   if (!page_data[path]) {
-    /** @type {Page} */
+    /** @type {Awaited<Page>} */
+    // @ts-ignore
     const elem = await page_dm.data[name].promise;
     elem;
     let func = PAGE_FUNCTIONS[path];
     /** @type {Object.<string, string>} */
+    // @ts-ignore
     let template_data = func.init
       ? func.init.constructor.name == "AsyncFunction"
         ? await func.init()
@@ -134,7 +155,8 @@ async function goto(path, oncomplete = null) {
       ? await func.init()
       : func.init()
     : {};
-  Page(path, elem.data).render(template_data || {});
+  // @ts-ignore
+  new Page(path, elem.data).render(template_data || {});
   post_processing(func);
 }
 

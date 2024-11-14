@@ -1,8 +1,10 @@
+// @ts-check 
 import { DownloadManager } from "./downloader.mjs";
 
 /** @type {JQuery} */
+// @ts-ignore
 const $ = window.$
-const downloader = DownloadManager(false)
+const downloader = new DownloadManager(false)
 
 /**
  * Known Templates
@@ -19,7 +21,7 @@ const KNOWN_TEMPLATES = {}
 /**
  * render template
  * @param {String} data - HTML Template code
- * @param {Object.<string, str>} template_data - Template mapping
+ * @param {Object.<string, string>} template_data - Template mapping
  * @returns {String}
  */
 function render_template(data, template_data) {
@@ -37,9 +39,14 @@ function render_template(data, template_data) {
  * @param {String} name - Template name, it can be used for nesting template rendering
  * @param {String} data - Template data, html template code
  */
-function Template(name, data) {
-    KNOWN_TEMPLATES[name] = data
-    return {
+class Template {
+    #data;
+
+    constructor(name, data) {
+        KNOWN_TEMPLATES[name] = data
+        this.#data = data
+    }
+    
         /**
          * Render this template into a element
          * @method render
@@ -51,8 +58,8 @@ function Template(name, data) {
             if (!elem)
                 throw new Error(`'${to}' cannot be found.`)
 
-            elem.innerHTML = render_template(data, template_data)
-        },
+            elem.innerHTML = render_template(this.#data, template_data)
+        }
 
         /**
          * Render and append to an element
@@ -62,11 +69,12 @@ function Template(name, data) {
          */
         append(to, template_data) {
             /** @type {JQuery?} */
+            // @ts-ignore
             const element = $(to)
             if (!element)
                 throw new Error(`${to} cannot be found`)
-            element.append(render_template(data, template_data))
-        },
+            element.append(render_template(this.#data, template_data))
+        }
         
         /**
          * Render and prepend to an element
@@ -76,11 +84,12 @@ function Template(name, data) {
          */
         prepend(to, template_data) {
             /** @type {JQuery?} */
+            // @ts-ignore
             const element = $(to)
             if (!element)
                 throw new Error(`${to} cannot be found`)
-            element.prepend(render_template(data, template_data))
-        },
+            element.prepend(render_template(this.#data, template_data))
+        }
 
         /**
          * Render all template data arrays and append them to target
@@ -90,12 +99,13 @@ function Template(name, data) {
          */
         batch_append(to, template_data_array) {
             /** @type {JQuery?} */
+            // @ts-ignore
             const element = $(to);
             if (!element) throw new Error(`${to} cannot be found`);
 
-            let combinedHtml = template_data_array.map(template_data => render_template(data, template_data)).join("");
+            let combinedHtml = template_data_array.map(template_data => render_template(this.#data, template_data)).join("");
             element.append(combinedHtml);
-        },
+        }
 
         /**
          * Render all template data arrays and append them to target
@@ -105,13 +115,12 @@ function Template(name, data) {
          */
         batch_prepend(to, template_data_array) {
             /** @type {JQuery?} */
+            // @ts-ignore
             const element = $(to);
             if (!element) throw new Error(`${to} cannot be found`);
 
-            let combinedHtml = template_data_array.map(template_data => render_template(data, template_data)).join("");
+            let combinedHtml = template_data_array.map(template_data => render_template(this.#data, template_data)).join("");
             element.prepend(combinedHtml);
-        },
-
     }
 }
 
@@ -126,13 +135,18 @@ function Template(name, data) {
  */
 const Template_with_url = (name, url, timeout = 2500, refresh = false) => {
     if ((KNOWN_TEMPLATES[name] !== undefined) && (!refresh))
+        // @ts-ignore
         return new Promise((resolve) => resolve(KNOWN_TEMPLATES[name]))
     return new Promise((resolve) => {
         setTimeout(() => {
+            // @ts-ignore
             downloader.setQueue([{ key: name, req: url, type: 'text' }])
+            // @ts-ignore
             downloader.execute()
             downloader.data[name].promise
+                // @ts-ignore
                 .then((v) => resolve(Template(name, v)))
+                // @ts-ignore
                 .catch((e) => reject(e))
         }, timeout)
     })

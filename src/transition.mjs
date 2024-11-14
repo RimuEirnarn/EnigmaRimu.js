@@ -1,21 +1,31 @@
+// @ts-check
 import { config } from "./config.mjs";
 
+// @ts-ignore
 if (typeof window.$ === "undefined")
   throw new Error(
     "transition.js requires jQuery to function properly as it needs to manipulates unrendered html code."
   );
 
 /** @type {JQuery} */
+// @ts-ignore
 const $ = window.$
 
 /**
  * Process HTML data into DOM
- * @param {jQuery} targetDOM
+ * @param {jQuery | string} targetDOM
  * @param {String} content
  * @returns {String} Page title
  */
 function _ProcessData(targetDOM, content) {
+  if (targetDOM instanceof String) {
+    /** @type {jQuery} */
+    // @ts-ignore
+    targetDOM = $(targetDOM)
+  }
+  // @ts-ignore
   targetDOM.html(content);
+  // @ts-ignore
   let virtualTitle = $(`${config.target.app} > title`);
   let title = document.title;
   if (virtualTitle) {
@@ -36,6 +46,7 @@ function _ProcessData(targetDOM, content) {
  * @returns {void}
  */
 function transition(urlPath, data) {
+  // @ts-ignore
   let target = $(config.target.app || "#app");
   let finalUrl = config.transition_uses_hash ? `#${urlPath}` : urlPath;
   let content = target.get(0);
@@ -61,7 +72,7 @@ function transition(urlPath, data) {
 
 window.onpopstate = function (e) {
   if (e.state) {
-    _ProcessData(config.target.app, e.state.html);
+    _ProcessData(config.target.app || "#app", e.state.html);
   }
 };
 
