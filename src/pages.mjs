@@ -119,14 +119,14 @@ function post_setup(default_target) {
  */
 async function goto(path, oncomplete = null) {
   /** @param {PageConfig} func  */
-  function post_processing(func) {
+  async function post_processing(func) {
     _process_inside_links(config.target.app);
 
     document.dispatchEvent(
       new CustomEvent("page.transitioned", { detail: path })
     );
     if (oncomplete) oncomplete();
-    if (func.post_init) func.post_init();
+    if (func.post_init) func.post_init.constructor.name == "AsyncFunction" ? await func.post_init() : func.post_init() ;
   }
 
   const name = path.replaceAll("/", "_");
@@ -157,7 +157,7 @@ async function goto(path, oncomplete = null) {
     : {};
   // @ts-ignore
   new Page(path, elem.data).render(template_data || {});
-  post_processing(func);
+  await post_processing(func);
 }
 
 export { setup, post_setup, goto, page_dm };
