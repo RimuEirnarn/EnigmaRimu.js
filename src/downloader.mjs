@@ -6,6 +6,33 @@ function hashed() {
 }
 
 /**
+ * @param {Number} time 
+ */
+function _waitfor(time) {
+    return new Promise((r) => setTimeout(r, time))
+}
+
+/**
+ * Wrapper around promise
+ * @param {Function} resolve
+ * @param {Function} reject 
+ * @param {Number} [callback_hell=10]
+ * @param {number} [timeout=50]  
+ */
+function promised_data(resolve, reject, callback_hell = 10, timeout = 50) {
+    // @ts-ignore
+    if (![undefined, null].includes(this.data)) {
+        resolve(this.data)
+        return
+    }
+    if (callback_hell > 1) {
+        _waitfor(timeout).then(() => promised_data.bind(this)(resolve, reject, callback_hell - 1))
+        return
+    }
+    reject("unavailable")
+}
+
+/**
  * @typedef QueueObject
  * @type {object}
  * @property {string} key - Queue Key/id
@@ -136,33 +163,6 @@ class DownloadManager {
     }
 
     /**
-     * @param {Number} time 
-     */
-    _waitfor(time) {
-        return new Promise((r) => setTimeout(r, time))
-    }
-
-    /**
-     * Wrapper around promise
-     * @param {Function} resolve
-     * @param {Function} reject 
-     * @param {Number} [callback_hell=10]
-     * @param {number} [timeout=50]  
-     */
-    promised_data(resolve, reject, callback_hell = 10, timeout = 50) {
-        // @ts-ignore
-        if (![undefined, null].includes(this.data)) {
-            resolve(this.data)
-            return
-        }
-        if (callback_hell > 1) {
-            this._waitfor(timeout).then(() => this.promised_data.bind(this)(resolve, reject, callback_hell - 1))
-            return
-        }
-        reject("unavailable")
-    }
-
-    /**
     * Set the download queue.
     * @param {Array.<QueueObject>} nqueue 
     */
@@ -182,14 +182,13 @@ class DownloadManager {
     execute(success_callback) {
         for (let i of this.#queue) {
             // @ts-ignore
-            const _pd = this.promised_data;
             const _md = this.#mapped;
             // @ts-ignore
             this.#mapped[i.key] = {
                 data: null,
                 status: null,
                 get promise() {
-                    return new Promise(_pd.bind(_md[i.key]))
+                    return new Promise(promised_data.bind(this))
                 }
             }
             ft(i.req, i.opt)

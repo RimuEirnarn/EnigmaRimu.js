@@ -1,4 +1,4 @@
-// @ts-check 
+// @ts-check
 import { DownloadManager } from "./downloader.mjs";
 
 /** @type {JQuery} */
@@ -137,7 +137,7 @@ const Template_with_url = (name, url, timeout = 2500, refresh = false) => {
     if ((KNOWN_TEMPLATES[name] !== undefined) && (!refresh))
         // @ts-ignore
         return new Promise((resolve) => resolve(KNOWN_TEMPLATES[name]))
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         setTimeout(() => {
             // @ts-ignore
             downloader.setQueue([{ key: name, req: url, type: 'text' }])
@@ -145,7 +145,7 @@ const Template_with_url = (name, url, timeout = 2500, refresh = false) => {
             downloader.execute()
             downloader.data[name].promise
                 // @ts-ignore
-                .then((v) => resolve(Template(name, v)))
+                .then((v) => resolve(new Template(name, v)))
                 // @ts-ignore
                 .catch((e) => reject(e))
         }, timeout)
