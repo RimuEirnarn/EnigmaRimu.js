@@ -1,8 +1,9 @@
 // @ts-check
 import { generate_id } from "./utils.mjs"
 
-function hashed() {
-    return `id=${Date.now()}/${generate_id(16)}`
+function hashed(use_value = null) {
+    const prop = use_value || `${Date.now()}/${generate_id(16)}`
+    return `prop_cache=${prop}`
 }
 
 /**
@@ -115,6 +116,14 @@ class DownloadManager {
     /** @type {boolean} */
     #should_frozen
 
+    /** @type {string} */
+    #dm_key
+
+    /** Determines if current download manager forces all queues to follow its own caching mechanics
+     * @type {boolean}
+    */
+    #use_key_cache
+
     /**
      * @param {boolean} [should_frozen]
      */
@@ -123,6 +132,8 @@ class DownloadManager {
         this.#should_frozen = should_frozen
         this.#queue = []
         this.#mapped = {}
+        this.#dm_key = generate_id(25)
+        this.#use_key_cache = false
     }
 
     /**
@@ -179,10 +190,39 @@ class DownloadManager {
      * Execute download manager
      * @param {DownloadCallback} success_callback 
      */
-    execute(success_callback) {
+    async execute_async(success_callback) {
         for (let i of this.#queue) {
-            // @ts-ignore
-            const _md = this.#mapped;
+            if (this.#use_key_cache) {
+                // @ts-ignore
+                // console.log(i, i.req)
+                let base = typeof i.req == 'string' ? i.req : i.req.url
+                let uri = base.replace(/prop_cache=[A-Za-z0-9\/]+/, `prop_cache=${this.#dm_key}`);
+                // try {
+                //     uri = new URL(base)
+                // } catch (TypeError) {
+                //     uri = new URL(`${location.href.includes('https') ? 'http' : 'https'}://${location.host}/${base}`)
+                // }
+                // uri.searchParams.set('prop_cache', this.#dm_key)
+                console.log(uri)
+                if (typeof i.req == 'string')
+                    i.req = uri
+                if (i.req instanceof Request) {
+                    // @ts-ignore
+                    const body = i.req.body ? i.req.clone().body : null;
+
+                    i.req = new Request(uri, {
+                        method: i.req.method,
+                        headers: i.req.headers,
+                        body, // Pass the cloned body
+                        mode: i.req.mode,
+                        credentials: i.req.credentials,
+                        cache: i.req.cache,
+                        redirect: i.req.redirect,
+                        referrer: i.req.referrer,
+                        integrity: i.req.integrity,
+                    });
+                }
+            }
             // @ts-ignore
             this.#mapped[i.key] = {
                 data: null,
@@ -191,7 +231,7 @@ class DownloadManager {
                     return new Promise(promised_data.bind(this))
                 }
             }
-            ft(i.req, i.opt)
+            await ft(i.req, i.opt)
                 .then(this.after_request(i, success_callback))
                 .catch((e) => {
                     console.error(e)
@@ -199,9 +239,65 @@ class DownloadManager {
                     this.#mapped[i.key]['data'] = e
                 })
         }
-        this.#queue.length = 0
+        if (!this.#use_key_cache)
+            this.#queue.length = 0
     }
 
+    /**
+     * Execute download manager
+     * @param {DownloadCallback} success_callback 
+     */
+    execute(success_callback) {
+        return this.execute_async(success_callback)
+    }
+
+    /**
+     * Force current download manager to use key-based caching.
+     * - Enabled: push_request, edit_request, remove_request
+     */
+    force_key_caching() {
+        this.#use_key_cache = true
+    }
+
+    /**
+     * Push current request
+     * @param {QueueObject} request 
+     */
+    push_request(request) {
+        if (!this.#use_key_cache)
+            throw new Error("Only usable by custom caching mechanics")
+        this.#queue.push(request)
+    }
+
+    /**
+     * Edit a request
+     * @param {QueueObject} request 
+     */
+    edit_request(request) {
+        if (!this.#use_key_cache)
+            throw new Error("Only usable by custom caching mechanics")
+        const what = this.#queue.findIndex((val) => val.key == request.key)
+        if (what != -1) {
+            this.#queue.splice(what, 1, request)
+        }
+    }
+
+    /**
+     * Remove a request
+     * @param {QueueObject} request 
+     */
+    remove_request(request) {
+        if (!this.#use_key_cache)
+            throw new Error("Only usable by custom caching mechanics")
+        const what = this.#queue.findIndex((val) => val.key == request.key)
+        if (what != -1) {
+            this.#queue.splice(what, 1)
+        }
+    }
+
+    rehash() {
+        this.#dm_key = generate_id(25)
+    }
 
     /**
     * Data after-queue. It may be ongoing or finished
