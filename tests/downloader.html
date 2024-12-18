@@ -14,7 +14,7 @@
     import { DownloadManager, prepare } from "../src/downloader.mjs";
     import { Template } from "../src/template.mjs"
 
-    const test = DownloadManager()
+    const test = new DownloadManager()
 
     // setup 2 downloads
     test.setQueue([
@@ -42,6 +42,18 @@
       prep('test5', 'downloader.html')
     ])
     test.execute()
+
+    const test2 = new DownloadManager()
+    test2.force_key_caching()
+    test2.setQueue([
+      prep('test1', 'downloader.html'),
+      prep('test2', 'notification.html'),
+      prep('test3', 'page/index.html')
+    ])
+    await test2.execute_async()
+    await test2.execute_async()
+    test2.rehash()
+    await test2.execute_async()
   </script>
 </head>
 <body>
