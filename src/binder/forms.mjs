@@ -38,4 +38,71 @@ function bindForm(data, base = document, require = false) {
   });
 }
 
-export { bindForm }
+/** Function to gather data from the form into an object
+ * @param {Document | HTMLElement} [base=document]
+ * @param {Object?} [base]
+ */
+function collectFormData(base = document, forms = undefined) {
+  const formData = forms !== undefined ? forms : {}
+
+  base.querySelectorAll("[data-bind]").forEach((element) => {
+    const bindPath = (element.getAttribute("data-bind") || '').split("/");
+    let current = formData;
+
+    // Traverse the object and create nested structure as needed
+    for (let i = 0; i < bindPath.length; i++) {
+      const key = bindPath[i];
+      if (i === bindPath.length - 1) {
+        // Determine the correct value type based on input type
+        let value;
+        // @ts-ignore
+        switch (element.type) {
+          case "checkbox":
+            // @ts-ignore
+            value = element.checked;
+            break;
+          case "number":
+            // @ts-ignore
+            value = element.value !== '' ? parseFloat(element.value) : null;
+            break;
+          case "date":
+            // @ts-ignore
+            value = element.value ? new Date(element.value).toISOString() : null;
+            break;
+          case "radio":
+            // @ts-ignore
+            if (element.checked) {
+              // @ts-ignore
+              value = element.value;
+            }
+            break;
+          case "select-multiple":
+            // @ts-ignore
+            value = Array.from(element.selectedOptions).map(opt => opt.value);
+            break;
+          case "json": // Custom type for textarea/json fields
+            try {
+              // @ts-ignore
+              value = JSON.parse(element.value);
+            } catch {
+              value = null;
+            }
+            break;
+          default: // For text and other types
+            // @ts-ignore
+            value = element.value;
+        }
+        current[key] = value;
+      } else {
+        // Create nested objects if they don't exist
+        current[key] = current[key] || {};
+        current = current[key];
+      }
+    }
+  });
+
+  // @ts-ignore
+  return formData;
+}
+
+export { bindForm, collectFormData }
