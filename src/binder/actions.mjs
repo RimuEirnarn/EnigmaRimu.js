@@ -62,7 +62,6 @@ function bound_buttons(base = document, action = globalRepository) {
       console.warn(`No action found for "${action_name}"`);
     }
   });
-  setLog("Bound all tracable actions.");
 }
 
 export { bound_buttons, globalRepository, ActionRepository }
