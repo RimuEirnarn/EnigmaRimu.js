@@ -25,13 +25,13 @@ const KNOWN_TEMPLATES = {}
  * @returns {String}
  */
 function render_template(data, template_data) {
-    let d = data
-    for (let key in template_data) {
-        if (template_data.hasOwnProperty(key)) {
-            d = d.replaceAll(`$[${key}]`, template_data[key])
-        }
+  let d = data
+  for (let key in template_data) {
+    if (template_data.hasOwnProperty(key)) {
+      d = d.replaceAll(`$[${key}]`, template_data[key])
     }
-    return d
+  }
+  return d
 }
 
 /**
@@ -40,88 +40,95 @@ function render_template(data, template_data) {
  * @param {String} data - Template data, html template code
  */
 class Template {
-    #data;
+  #data;
 
-    constructor(name, data) {
-        KNOWN_TEMPLATES[name] = data
-        this.#data = data
-    }
-    
-        /**
-         * Render this template into a element
-         * @method render
-         * @param {String} to Target element
-         * @param {TemplateData} template_data Template mapping
-         */
-        render(to, template_data) {
-            const elem = document.querySelector(to)
-            if (!elem)
-                throw new Error(`'${to}' cannot be found.`)
+  constructor(name, data) {
+    KNOWN_TEMPLATES[name] = data
+    this.#data = data
+  }
 
-            elem.innerHTML = render_template(this.#data, template_data)
-        }
+  /**
+   * If this template has empty content, returns true
+   */
+  isEmpty() {
+    return this.#data == ""
+  }
 
-        /**
-         * Render and append to an element
-         * @method append
-         * @param {String} to Target element
-         * @param {TemplateData} template_data template mapping
-         */
-        append(to, template_data) {
-            /** @type {JQuery?} */
-            // @ts-ignore
-            const element = $(to)
-            if (!element)
-                throw new Error(`${to} cannot be found`)
-            element.append(render_template(this.#data, template_data))
-        }
-        
-        /**
-         * Render and prepend to an element
-         * @method prepend
-         * @param {String} to Target element
-         * @param {TemplateData} template_data template mapping
-         */
-        prepend(to, template_data) {
-            /** @type {JQuery?} */
-            // @ts-ignore
-            const element = $(to)
-            if (!element)
-                throw new Error(`${to} cannot be found`)
-            element.prepend(render_template(this.#data, template_data))
-        }
+  /**
+   * Render this template into a element
+   * @method render
+   * @param {String} to Target element
+   * @param {TemplateData} template_data Template mapping
+   */
+  render(to, template_data) {
+    const elem = document.querySelector(to)
+    if (!elem)
+      throw new Error(`'${to}' cannot be found.`)
 
-        /**
-         * Render all template data arrays and append them to target
-         * @method batch_append
-         * @param {String} to Target element
-         * @param {TemplateData[]} template_data_array 
-         */
-        batch_append(to, template_data_array) {
-            /** @type {JQuery?} */
-            // @ts-ignore
-            const element = $(to);
-            if (!element) throw new Error(`${to} cannot be found`);
+    elem.innerHTML = render_template(this.#data, template_data)
+  }
 
-            let combinedHtml = template_data_array.map(template_data => render_template(this.#data, template_data)).join("");
-            element.append(combinedHtml);
-        }
+  /**
+   * Render and append to an element
+   * @method append
+   * @param {String} to Target element
+   * @param {TemplateData} template_data template mapping
+   */
+  append(to, template_data) {
+    /** @type {JQuery?} */
+    // @ts-ignore
+    const element = $(to)
+    if (!element)
+      throw new Error(`${to} cannot be found`)
+    element.append(render_template(this.#data, template_data))
+  }
 
-        /**
-         * Render all template data arrays and append them to target
-         * @method batch_prepend
-         * @param {String} to Target element
-         * @param {TemplateData[]} template_data_array 
-         */
-        batch_prepend(to, template_data_array) {
-            /** @type {JQuery?} */
-            // @ts-ignore
-            const element = $(to);
-            if (!element) throw new Error(`${to} cannot be found`);
+  /**
+   * Render and prepend to an element
+   * @method prepend
+   * @param {String} to Target element
+   * @param {TemplateData} template_data template mapping
+   */
+  prepend(to, template_data) {
+    /** @type {JQuery?} */
+    // @ts-ignore
+    const element = $(to)
+    if (!element)
+      throw new Error(`${to} cannot be found`)
+    element.prepend(render_template(this.#data, template_data))
+  }
 
-            let combinedHtml = template_data_array.map(template_data => render_template(this.#data, template_data)).join("");
-            element.prepend(combinedHtml);
-    }
+  /**
+   * Render all template data arrays and append them to target
+   * @method batch_append
+   * @param {String} to Target element
+   * @param {TemplateData[]} template_data_array 
+   */
+  batch_append(to, template_data_array) {
+    /** @type {JQuery?} */
+    // @ts-ignore
+    const element = $(to);
+    if (!element) throw new Error(`${to} cannot be found`);
+
+    let combinedHtml = template_data_array.map(template_data => render_template(this.#data, template_data)).join("");
+    element.append(combinedHtml);
+  }
+
+  /**
+   * Render all template data arrays and append them to target
+   * @method batch_prepend
+   * @param {String} to Target element
+   * @param {TemplateData[]} template_data_array 
+   */
+  batch_prepend(to, template_data_array) {
+    /** @type {JQuery?} */
+    // @ts-ignore
+    const element = $(to);
+    if (!element) throw new Error(`${to} cannot be found`);
+
+    let combinedHtml = template_data_array.map(template_data => render_template(this.#data, template_data)).join("");
+    element.prepend(combinedHtml);
+  }
 }
 
 /**
@@ -134,22 +141,22 @@ class Template {
  * @returns {Promise.<Template>}
  */
 const Template_with_url = (name, url, timeout = 2500, refresh = false) => {
-    if ((KNOWN_TEMPLATES[name] !== undefined) && (!refresh))
+  if ((KNOWN_TEMPLATES[name] !== undefined) && (!refresh))
+    // @ts-ignore
+    return new Promise((resolve) => resolve(KNOWN_TEMPLATES[name]))
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      // @ts-ignore
+      downloader.setQueue([{ key: name, req: url, type: 'text' }])
+      // @ts-ignore
+      downloader.execute()
+      downloader.data[name].promise
         // @ts-ignore
-        return new Promise((resolve) => resolve(KNOWN_TEMPLATES[name]))
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            // @ts-ignore
-            downloader.setQueue([{ key: name, req: url, type: 'text' }])
-            // @ts-ignore
-            downloader.execute()
-            downloader.data[name].promise
-                // @ts-ignore
-                .then((v) => resolve(new Template(name, v)))
-                // @ts-ignore
-                .catch((e) => reject(e))
-        }, timeout)
-    })
+        .then((v) => resolve(new Template(name, v)))
+        // @ts-ignore
+        .catch((e) => reject(e))
+    }, timeout)
+  })
 }
 
 Template.with_url = Template_with_url
