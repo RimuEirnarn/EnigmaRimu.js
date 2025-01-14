@@ -10,6 +10,7 @@ const nl_template = new Template("null", "")
  * @type {object}
  * @property {string} body - notification body
  * @property {string?} title - notification title
+ * @property {string?} level - notification level (INFO, WARNING, ERROR) 
  * @property {Number?} time - notification visible time
  */
 
@@ -18,6 +19,14 @@ const nl_template = new Template("null", "")
  * @callback timeFormatter
  * 
  * @param {number} time Time
+ * @returns {string}
+ */
+
+/**
+ * Level Formatter Callback
+ * @callback levelFormatter
+ * 
+ * @param {string} level Notification level (INFO, WARNING, ERROR)
  * @returns {string}
  */
 
@@ -33,10 +42,14 @@ class Notification {
     /** @type {timeFormatter} */
     #timeFormatter
 
+    /** @type {levelFormatter} */
+    #levelFormatter
+
     constructor() {
         this.#_history = []
         this.#template = nl_template
         this.#timeFormatter = (time) => time.toString()
+        this.#levelFormatter = (level) => `bg-${level}`
     }
     /**
     * Push Notification and renders it
@@ -52,6 +65,7 @@ class Notification {
                 title: data.title || "",
                 body: data.body,
                 time: this.#timeFormatter(data.time || 0) || "now",
+                level: this.#levelFormatter(data.level || 'info')
             })
         }
         console.log(`${data.title}\n${data.body}`)
