@@ -47,7 +47,7 @@ const nl_template = new Template("null", "")
  * @callback initiator
  * 
  * @param {string} notification_id Notification ID
- * @returns {string}
+ * @returns {null}
  */
 
 /**
@@ -66,12 +66,14 @@ class Notification {
   #levelFormatter
 
   /** @type {initiator} */
+  #initiator
 
   constructor() {
     this.#_history = []
     this.#template = nl_template
     this.#timeFormatter = (time) => time.toString()
     this.#levelFormatter = (level) => `bg-${level}`
+    this.#initiator = (notification_id) => null
   }
   /**
   * Push Notification and renders it
@@ -94,6 +96,7 @@ class Notification {
         level: this.#levelFormatter(data.level || 'info'),
         id: nid
       })
+      this.#initiator(nid)
       this.#_history.push(hist)
     }
     console.log(`${data.title}\n${data.body}`)
