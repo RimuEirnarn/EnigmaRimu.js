@@ -51,7 +51,26 @@ const nl_template = new Template("null", "")
  */
 
 /**
- * Notification
+ * Notification.
+ * 
+ * This class stores information like templating, rendering, and pushing to the host content. Any data is stored in history.
+ * 
+ * To use the class just do:
+ * 
+ * ```js
+ * const NotificationHandler = new Notification()
+ * NotificationHandler.setTemplate(await Template.with_url("toast", "notification.html", 50))
+ * NotificationHandler.setInitiator((nid) => {
+ *  // activate stuff
+ * })
+ * NotificationHandler.setTimeFormatter((time) => relativeTime(time))
+ * NotificationHandler.push({title: "Hey!", body: "Hello, World!", level: "info", time: now()})
+ * ```
+ * 
+ * Depending on your configurations, title can be optional, including level. Level can be adjusted however you want. Time is also optional.
+ * The renderer engine won't be mad at you for giving extra stuff.
+ * 
+ * You can also configure your template to include nid (notification id) so you can have control over the content. This is why nid is passed to initiator.
  */
 class Notification {
   /** @type {NotificationHistory[]} */
@@ -116,6 +135,14 @@ class Notification {
    */
   setTimeFormatter(fmt) {
     this.#timeFormatter = fmt
+  }
+
+  /**
+   * Set initiator
+   * @param {initiator} init
+   */
+  setInitiator(init) {
+    this.#initiator = init
   }
 
   get history() {
