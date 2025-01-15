@@ -118,7 +118,7 @@ class Notification {
       this.#initiator(nid)
       this.#_history.push(hist)
     }
-    console.log(`${data.title}\n${data.body}`)
+    // console.log(`${data.title}\n${data.body}`)
   }
 
   /**
