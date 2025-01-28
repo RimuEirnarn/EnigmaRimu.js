@@ -300,6 +300,13 @@ class DownloadManager {
     }
 
     /**
+     * Clear all mapped/downloaded data.
+     */
+    clear() {
+        this.#mapped = {}
+    }
+
+    /**
     * Data after-queue. It may be ongoing or finished
     * @type {Object.<string, DownloadedData<T>>}
     */
