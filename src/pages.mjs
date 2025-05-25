@@ -95,7 +95,9 @@ function setup(page_route) {
 }
 
 function _process_inside_links(target) {
-  let links = document.querySelector(target).querySelectorAll("a[href]");
+  const targetDOM = document.querySelector(target)
+  if (!targetDOM) return;
+  let links = targetDOM.querySelectorAll("a[href]");
 
   for (let i of links) {
     if (!(i in PAGE_FUNCTIONS)) continue;
